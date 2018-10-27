@@ -1,4 +1,4 @@
-###################################### >Last Modified on Fri, 26 Oct 2018< 
+###################################### >Last Modified on Sat, 27 Oct 2018< 
 # docker image for spark
 # 
 # 
@@ -10,7 +10,7 @@ FROM opensuse:42.2
 RUN mkdir /workspace
 WORKDIR /workspace
 
-############################################################# utilities
+############################################################ utilities
 RUN zypper --non-interactive install vim
 RUN zypper --non-interactive install wget
 RUN zypper --non-interactive install curl
@@ -21,7 +21,33 @@ RUN zypper --non-interactive install net-tools
 RUN zypper --non-interactive install glibc-locale
 RUN zypper --non-interactive install rsync
 
-################################################################# ssh/d
+############################################################# Python 3
+RUN zypper --non-interactive install gcc
+RUN zypper --non-interactive install gcc-c++
+RUN zypper --non-interactive install python3
+RUN zypper --non-interactive install python3-devel
+RUN zypper --non-interactive install python3-pip
+RUN zypper --non-interactive install python3-h5py
+RUN zypper --non-interactive install python3-lxml
+RUN zypper --non-interactive install python3-matplotlib
+RUN zypper --non-interactive install python3-numpy
+RUN zypper --non-interactive install python3-numpy-devel
+RUN zypper --non-interactive install python3-opencv
+RUN zypper --non-interactive install python3-openpyxl
+RUN zypper --non-interactive install python3-pandas
+RUN zypper --non-interactive install python3-pytest
+RUN zypper --non-interactive install python3-requests
+RUN zypper --non-interactive install python3-scipy
+RUN zypper --non-interactive install python3-setuptools
+RUN zypper --non-interactive install cyrus-sasl-devel
+RUN pip install --upgrade pip
+RUN pip install scikit-learn
+RUN pip install seaborn
+RUN pip install jupyter
+RUN pip install jupyterlab
+RUN pip install pyhive[hive]
+
+################################################################ ssh/d
 RUN zypper --non-interactive install openssh
 
 RUN ssh-keygen -q -N "" -t dsa -f /etc/ssh/ssh_host_dsa_key
@@ -35,14 +61,14 @@ RUN chmod 0600 /root/.ssh/authorized_keys
 RUN echo "Port 22" >> /etc/ssh/ssh_config
 RUN echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
-################################################################## JAVA
+################################################################# JAVA
 COPY download/jdk-8u131-linux-x64.rpm /workspace/jdk-8u131-linux-x64.rpm
 RUN rpm -iv jdk-8u131-linux-x64.rpm
 
 ENV JAVA_HOME /usr/java/latest
 ENV PATH $PATH:$JAVA_HOME/bin
 
-################################################################ Hadoop
+############################################################### Hadoop
 ENV HADOOP_HOME /usr/local/hadoop
 
 COPY download/hadoop-2.9.1.tar.gz /workspace/hadoop-2.9.1.tar.gz
@@ -60,7 +86,7 @@ ENV PATH $PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
 RUN mkdir -p /home/hadoop/hadoopinfra/hdfs/{namenode,datanode}
 RUN $HADOOP_HOME/bin/hdfs namenode -format
 
-############################################################ Apache Hive
+########################################################## Apache Hive
 ENV HIVE_HOME /usr/local/hive
 
 COPY download/apache-hive-3.1.0-bin.tar.gz /workspace/apache-hive-3.1.0-bin.tar.gz
@@ -71,7 +97,7 @@ RUN mv $HIVE_HOME/conf/hive-env.sh.template $HIVE_HOME/conf/hive-env.sh
 COPY conf/hive-site.xml $HIVE_HOME/conf/hive-site.xml
 ENV PATH $PATH:$HIVE_HOME/bin
 
-########################################################### Apache Derby 
+######################################################## Apache Derby 
 ENV DERBY_HOME /usr/local/derby
 
 COPY download/db-derby-10.14.2.0-bin.tar.gz /workspace/db-derby-10.14.2.0-bin.tar.gz
@@ -85,9 +111,16 @@ COPY conf/jpox.properties $HIVE_HOME/conf/jpox.properties
 RUN cp $DERBY_HOME/lib/derbyclient.jar $HIVE_HOME/lib
 RUN cp $DERBY_HOME/lib/derbytools.jar $HIVE_HOME/lib
 
-#RUN nohup $DERBY_HOME/bin/startNetworkServer -h 0.0.0.0 &
+#################################################################### R
+#RUN zypper addrepo -f http://download.opensuse.org/repositories/devel\:/languages\:/R\:/patched/openSUSE_Leap_42.2/ R-base
+#RUN zypper --non-interactive update 
+#RUN zypper --non-interactive install R-base R-base-devel
+################################################################ Spark
 
 
-######################################################### initialization 
+
+
+
+####################################################### initialization
 COPY conf/start-services.sh /workspace/start-services.sh
 RUN chmod 755 /workspace/start-services.sh

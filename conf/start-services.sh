@@ -21,11 +21,8 @@ hadoop fs -mkdir -p /user/hive/warehouse
 hadoop fs -chmod g+w /tmp
 hadoop fs -chmod g+w /user/hive/warehouse
 
-
-
-
-#nohup $DERBY_HOME/bin/startNetworkServer -h 0.0.0.0 &
-#schematool -dbType derby -initSchema
+nohup $DERBY_HOME/bin/startNetworkServer -h 0.0.0.0 &
+schematool -dbType derby -initSchema
 
 
 
