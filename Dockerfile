@@ -1,4 +1,4 @@
-###################################### >Last Modified on Sat, 27 Oct 2018< 
+###################################### >Last Modified on Sun, 28 Oct 2018< 
 # docker image for spark
 # 
 # 
@@ -20,6 +20,7 @@ RUN zypper --non-interactive install less
 RUN zypper --non-interactive install net-tools
 RUN zypper --non-interactive install glibc-locale
 RUN zypper --non-interactive install rsync
+RUN zypper --non-interactive install telnet
 
 ############################################################# Python 3
 RUN zypper --non-interactive install gcc
@@ -102,7 +103,7 @@ ENV DERBY_HOME /usr/local/derby
 
 COPY download/db-derby-10.14.2.0-bin.tar.gz /workspace/db-derby-10.14.2.0-bin.tar.gz
 RUN tar xvfz db-derby-10.14.2.0-bin.tar.gz
-RUN mv db-derby-10.14.2.0-bin /usr/local/derby
+RUN mv db-derby-10.14.2.0-bin $DERBY_HOME
 
 ENV PATH $PATH:$DERBY_HOME/bin
 RUN mkdir $DERBY_HOME/data
@@ -115,12 +116,33 @@ RUN cp $DERBY_HOME/lib/derbytools.jar $HIVE_HOME/lib
 #RUN zypper addrepo -f http://download.opensuse.org/repositories/devel\:/languages\:/R\:/patched/openSUSE_Leap_42.2/ R-base
 #RUN zypper --non-interactive update 
 #RUN zypper --non-interactive install R-base R-base-devel
+
 ################################################################ Spark
+ENV SPARK_HOME /usr/local/spark
 
+COPY download/spark-2.3.2-bin-hadoop2.7.tgz /workspace/spark-2.3.2-bin-hadoop2.7.tgz
+RUN tar xvfz spark-2.3.2-bin-hadoop2.7.tgz
+RUN mv spark-2.3.2-bin-hadoop2.7 $SPARK_HOME
+COPY conf/hive-site.xml $SPARK_HOME/conf/hive-site.xml
 
+ENV PATH $PATH:$SPARK_HOME/bin
 
 
 
 ####################################################### initialization
 COPY conf/start-services.sh /workspace/start-services.sh
+COPY conf/root-bashrc.sh /root/.bashrc
 RUN chmod 755 /workspace/start-services.sh
+
+RUN echo 'root:spark' | chpasswd
+
+
+
+
+COPY tmp/hive-ddl.hql /workspace/hive-ddl.hql
+######################################################## ordinary user
+#RUN useradd -ms /bin/bash kraps
+#RUN echo 'kraps:spark' | chpasswd
+#USER kraps
+#WORKDIR /home/kraps
+#COPY conf/root-bashrc.sh /home/kraps/.bashrc
